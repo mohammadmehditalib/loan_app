@@ -1,8 +1,4 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:home_loans/models/question.dart';
 import 'package:home_loans/result.dart';
 import 'package:home_loans/utils/utils.dart';
@@ -19,8 +15,9 @@ class _QuestionWidgetState extends State<QuestionWidget> with TickerProviderStat
   late PageController _controller;
 
   String selectedOption = '';
-  int questionNumber = 0;
-  double progress = 1;
+  int questionNumber = 1;
+  double progress = 0.0;
+  int cnt = 1;
 
   @override
   void initState() {
@@ -32,11 +29,11 @@ class _QuestionWidgetState extends State<QuestionWidget> with TickerProviderStat
         WidgetsBinding.instance.addPostFrameCallback(
           (_) => setState(() {
             questions = allData;
+            progress = (cnt / 7);
           }),
         );
       },
     );
-    progress = 1 / questions.length;
   }
 
   @override
@@ -48,10 +45,15 @@ class _QuestionWidgetState extends State<QuestionWidget> with TickerProviderStat
         children: [
           const Text(
             'About loan',
-            style: TextStyle(color: Colors.black, fontSize: 25),
+            style: TextStyle(color: Colors.black87, fontSize: 25),
           ),
           const SizedBox(
-            height: 20,
+            height: 24,
+          ),
+          LinearProgressIndicator(
+            backgroundColor: Colors.grey,
+            value: progress,
+            color: Colors.green,
           ),
           Expanded(
               child: PageView.builder(
@@ -70,7 +72,8 @@ class _QuestionWidgetState extends State<QuestionWidget> with TickerProviderStat
                       duration: const Duration(milliseconds: 200), curve: Curves.easeInExpo);
                   setState(() {
                     questionNumber--;
-                    progress--;
+                    cnt--;
+                    progress = cnt / 7;
                   });
                 },
                 child: Row(
@@ -92,13 +95,15 @@ class _QuestionWidgetState extends State<QuestionWidget> with TickerProviderStat
         const SizedBox(
           height: 32,
         ),
-        question.text=='numeric'?      Text(
-          question.options[0],
-          style: const TextStyle(fontSize: 15),
-        ): Text(
-          question.text,
-          style: const TextStyle(fontSize: 15),
-        ),
+        question.text == 'numeric'
+            ? Text(
+                question.options[0],
+                style: const TextStyle(fontSize: 15),
+              )
+            : Text(
+                question.text,
+                style: const TextStyle(fontSize: 15),
+              ),
         Expanded(child: optionsWidget(question))
       ],
     );
@@ -113,7 +118,7 @@ class _QuestionWidgetState extends State<QuestionWidget> with TickerProviderStat
   Widget buildOption(BuildContext context, String option, Question question) {
     return Container(
       height: 35,
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.symmetric(vertical: 7),
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(5),
           border: selectedOption != option
@@ -145,26 +150,30 @@ class _QuestionWidgetState extends State<QuestionWidget> with TickerProviderStat
   Widget buildElevatedButton() {
     return Visibility(
       visible: selectedOption != '',
-      child: IconButton(
-          onPressed: () {
-            if (questionNumber < questions.length) {
-              _controller.nextPage(
-                  duration: const Duration(milliseconds: 200), curve: Curves.easeInExpo);
-              setState(() {
-                questionNumber++;
-                selectedOption = '';
-                progress++;
-              });
-            } else {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => Results(
-                            questions: questions,
-                          )));
-            }
-          },
-          icon: const Icon(Icons.chevron_right)),
+      child: Container(
+        decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.orange),
+        child: IconButton(
+            onPressed: () {
+              if (questionNumber < questions.length) {
+                _controller.nextPage(
+                    duration: const Duration(milliseconds: 200), curve: Curves.easeInExpo);
+                setState(() {
+                  questionNumber++;
+                  selectedOption = '';
+                  cnt++;
+                  progress = cnt / 7;
+                });
+              } else {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => Results(
+                              questions: questions,
+                            )));
+              }
+            },
+            icon: const Icon(Icons.chevron_right)),
+      ),
     );
   }
 }
